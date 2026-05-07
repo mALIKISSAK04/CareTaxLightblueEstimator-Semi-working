@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPS Client Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c5282;
+            --primary-light: #4a7ba7;
+            --accent: #d4a574;
+            --success: #48bb78;
+            --warning: #f6ad55;
+            --danger: #f56565;
+            --neutral-light: #edf2f7;
+            --white: #ffffff;
+            --text: #1a202c;
+            --text-muted: #718096;
+            --border: #cbd5e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* LOGIN PAGE STYLES */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+        }
+
+        .login-box {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background: transparent;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem;
+            color: var(--white);
+            box-shadow: none;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .login-logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-logo p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(44, 82, 130, 0.1);
+        }
+
+        .login-btn {
+            padding: 0.85rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(44, 82, 130, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--danger);
+            display: none;
+        }
+
+        .login-error.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CHANGE PASSWORD MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 16px;
+            max-width: 700px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        .modal-content h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .modal-content p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* MAIN APP STYLES */
+        .app-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .header-logo img,
+        .header-logo svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+
+        .view-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .view-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .search-box {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input-group input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .search-input-group button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-group button:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .client-list {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .client-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .client-item:hover {
+            background: #f7fafc;
+        }
+
+        .client-item-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .client-item-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: #c6f6d5; color: #22543d; }
+        .badge-warning { background: #feebc8; color: #7c2d12; }
+        .badge-info { background: #bee3f8; color: #2c5282; }
+
+        .form-section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 0.75rem;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: #f0f4f8;
+            cursor: not-allowed;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--neutral-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .fpl-indicator {
+            background: #fffaf0;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .profile-header {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .profile-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .profile-top h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .profile-top-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .profile-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .profile-section-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .profile-value {
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .cases-container {
+            margin-top: 2rem;
+        }
+
+        .cases-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .cases-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .case-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            pointer-events: auto;
+        }
+
+        .case-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .case-card * {
+            pointer-events: none;
+        }
+
+        .case-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .case-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .case-card-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .case-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .case-info-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .case-info-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .case-info-value {
+            color: var(--text-muted);
+        }
+
+        .case-card-services {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .add-case-card {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f5ff 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-case-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .add-case-content {
+            text-align: center;
+        }
+
+        .add-case-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .add-case-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid var(--primary);
+        }
+
+        .stat-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .note-item {
+            background: #f7fafc;
+            padding: 1rem;
+            border-left: 3px solid var(--primary);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .note-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .note-author {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .note-text {
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+
+        .add-note-form {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-direction: column;
+        }
+
+        .add-note-form textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .add-note-form textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(44, 82, 130, 0.1);
+        }
+
+        .add-note-btn {
+            align-self: flex-start;
+            padding: 0.5rem 1rem;
+            background: var(--success);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .add-note-btn:hover {
+            background: #38a169;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-left {
+                width: 100%;
+            }
+
+            .header-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cases-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-sections {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-top {
+                flex-direction: column;
+            }
+
+            .profile-top-actions {
+                width: 100%;
+            }
+
+            .search-input-group {
+                flex-direction: column;
+            }
+
+            .search-input-group input,
+            .search-input-group button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <div class="logo-circle">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+                        <!-- Outer circle -->
+                        <circle cx="100" cy="100" r="95" fill="none" stroke="#2c5282" stroke-width="8"/>
+                        <!-- Tree -->
+                        <path d="M 100 40 Q 80 60 70 75 Q 65 85 70 90 Q 75 85 80 75 L 85 95 Q 80 100 85 105 Q 90 102 95 95 L 100 115" fill="#2c5282"/>
+                        <path d="M 100 40 Q 120 60 130 75 Q 135 85 130 90 Q 125 85 120 75 L 115 95 Q 120 100 115 105 Q 110 102 105 95 L 100 115" fill="#2c5282"/>
+                        <!-- Trunk -->
+                        <rect x="92" y="115" width="16" height="40" fill="#2c5282"/>
+                        <!-- Children silhouettes -->
+                        <circle cx="70" cy="145" r="10" fill="#2c5282"/>
+                        <circle cx="100" cy="155" r="8" fill="#2c5282"/>
+                        <circle cx="130" cy="145" r="10" fill="#2c5282"/>
+                        <!-- Raised arms -->
+                        <line x1="65" y1="140" x2="55" y2="125" stroke="#2c5282" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="135" y1="140" x2="145" y2="125" stroke="#2c5282" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1>DPS</h1>
+                <p>DeKalb Public Services</p>
+            </div>
+
+            <div id="loginError" class="login-error"></div>
+
+            <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="malikdps" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL (FIRST LOGIN) -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <h2>🔐 Set Your Password</h2>
+            <p>Welcome! Please set a new password for your account.</p>
+            <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                </div>
+                <button type="submit" class="login-btn">Set Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="appPage" style="display: none;" class="app-wrapper">
+        <header>
+            <div class="header-left">
+                <div class="header-logo">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Outer circle -->
+                        <circle cx="100" cy="100" r="95" fill="none" stroke="#ffffff" stroke-width="8"/>
+                        <!-- Tree -->
+                        <path d="M 100 40 Q 80 60 70 75 Q 65 85 70 90 Q 75 85 80 75 L 85 95 Q 80 100 85 105 Q 90 102 95 95 L 100 115" fill="#ffffff"/>
+                        <path d="M 100 40 Q 120 60 130 75 Q 135 85 130 90 Q 125 85 120 75 L 115 95 Q 120 100 115 105 Q 110 102 105 95 L 100 115" fill="#ffffff"/>
+                        <!-- Trunk -->
+                        <rect x="92" y="115" width="16" height="40" fill="#ffffff"/>
+                        <!-- Children silhouettes -->
+                        <circle cx="70" cy="145" r="10" fill="#ffffff"/>
+                        <circle cx="100" cy="155" r="8" fill="#ffffff"/>
+                        <circle cx="130" cy="145" r="10" fill="#ffffff"/>
+                        <!-- Raised arms -->
+                        <line x1="65" y1="140" x2="55" y2="125" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="135" y1="140" x2="145" y2="125" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="header-title">
+                    <h1>DPS Client Tracker</h1>
+                    <p>Team-based client management</p>
+                </div>
+            </div>
+            <div class="header-user">
+                <div class="user-badge">👤 <span id="currentUserDisplay"></span></div>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="view-selector">
+                <button class="view-btn active" onclick="switchView('dashboard')">Dashboard</button>
+                <button class="view-btn" onclick="switchView('list')">All Clients</button>
+                <button class="view-btn" onclick="switchView('fpl')">📋 FPL Reference</button>
+                <button class="view-btn" id="adminBtn" onclick="switchView('admin')" style="display: none;">⚙️ Admin Settings</button>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="section active">
+                <div class="search-box">
+                    <h2 style="color: var(--primary); margin-bottom: 1rem;">🔍 Search Client by Phone</h2>
+                    <div class="search-input-group">
+                        <input type="tel" id="searchPhone" placeholder="(000) 000-0000" onkeypress="if(event.key==='Enter') handlePhoneSearch()">
+                        <button onclick="handlePhoneSearch()">Search / New Client</button>
+                    </div>
+                    <div id="searchResult" style="margin-top: 1.5rem;"></div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Clients</h3>
+                        <div class="value" id="totalClients">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Cases</h3>
+                        <div class="value" id="totalCases">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Cases</h3>
+                        <div class="value" id="activeCases">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Last Update</h3>
+                        <div class="value" id="lastUpdate">—</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem;">
+                    <h2 style="color: var(--primary); margin-bottom: 1.5rem; font-size: 1.3rem;">📋 Active Cases</h2>
+                    <div id="activeCasesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;"></div>
+                </div>
+            </div>
+
+            <!-- CLIENT LIST -->
+            <div id="list" class="section">
+                <div class="client-list" id="clientList"></div>
+            </div>
+
+            <!-- PROFILE VIEW -->
+            <div id="profile" class="section">
+                <div class="profile-header" id="profileHeader"></div>
+                <div class="cases-container">
+                    <div class="cases-header">
+                        <h2>📋 Cases</h2>
+                    </div>
+                    <div class="cases-grid" id="casesGrid"></div>
+                </div>
+            </div>
+
+            <!-- NEW CLIENT FORM -->
+            <div id="new" class="section">
+                <form id="clientForm" onsubmit="handleSaveClient(event)">
+                    <div class="form-section">
+                        <h2>📋 Personal Information</h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label>Full Name *</label>
+                                <input type="text" id="fullName" required placeholder="Enter full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" id="dob" onchange="updateAge()">
+                            </div>
+                            <div class="form-group">
+                                <label>Age</label>
+                                <input type="number" id="age" placeholder="Auto-calculated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select id="gender">
+                                    <option value="">Select...</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Non-binary">Non-binary</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>👥 Demographics & Status</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Race / Ethnicity</label>
+                                <select id="ethnicity">
+                                    <option value="">Select...</option>
+                                    <option value="Black / African American">Black / African American</option>
+                                    <option value="African">African</option>
+                                    <option value="Hispanic / Latino">Hispanic / Latino</option>
+                                    <option value="White">White</option>
+                                    <option value="Asian">Asian</option>
+                                    <option value="Afghan">Afghan</option>
+                                    <option value="Rohingya">Rohingya</option>
+                                    <option value="Middle Eastern / North African">Middle Eastern / North African</option>
+                                    <option value="Other">Other</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Preferred Language</label>
+                                <select id="language">
+                                    <option value="English">English</option>
+                                    <option value="Spanish">Spanish</option>
+                                    <option value="Arabic">Arabic</option>
+                                    <option value="Rohingya">Rohingya</option>
+                                    <option value="Pashto">Pashto</option>
+                                    <option value="Amharic">Amharic</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Disability Status</label>
+                                <select id="disabilityStatus">
+                                    <option value="">Select...</option>
+                                    <option value="None">None</option>
+                                    <option value="Physical">Physical</option>
+                                    <option value="Developmental">Developmental</option>
+                                    <option value="Cognitive">Cognitive</option>
+                                    <option value="Mental Health">Mental Health</option>
+                                    <option value="Multiple">Multiple</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Veteran Status</label>
+                                <select id="veteranStatus">
+                                    <option value="">Select...</option>
+                                    <option value="None">None</option>
+                                    <option value="Active Duty">Active Duty</option>
+                                    <option value="Veteran">Veteran</option>
+                                    <option value="Reserve">Reserve</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Immigration Status</label>
+                                <select id="immigrationStatus">
+                                    <option value="">Select...</option>
+                                    <option value="US Citizen">US Citizen</option>
+                                    <option value="Green Card">Green Card</option>
+                                    <option value="Visa">Visa</option>
+                                    <option value="Refugee">Refugee</option>
+                                    <option value="Asylee">Asylee</option>
+                                    <option value="Undocumented">Undocumented</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>📞 Contact Information</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" id="phone" required placeholder="(000) 000-0000">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="email" placeholder="email@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Street Address</label>
+                                <input type="text" id="address" placeholder="123 Main St">
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="city" placeholder="Stone Mountain">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input type="text" id="state" placeholder="GA" maxlength="2">
+                            </div>
+                            <div class="form-group">
+                                <label>Zip Code</label>
+                                <input type="text" id="zip" placeholder="30083">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>🏠 Household Information & Income</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Household Size *</label>
+                                <input type="number" id="householdSize" required placeholder="Number of people" onchange="calculateFPL()">
+                            </div>
+                            <div class="form-group">
+                                <label>Household Income (Annual)</label>
+                                <input type="text" id="householdIncome" placeholder="$0,000.00" onchange="calculateFPL()">
+                            </div>
+                            <div class="form-group">
+                                <label>Income Year</label>
+                                <input type="number" id="incomeYear" placeholder="2026" value="2026">
+                            </div>
+                        </div>
+                        <div id="fplDisplay" class="fpl-indicator"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="button-group">
+                            <button type="submit" class="btn-primary">Create Client Profile</button>
+                            <button type="button" class="btn-secondary" onclick="switchView('dashboard')">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FPL REFERENCE TAB -->
+            <div id="fpl" class="section">
+                <div class="form-section">
+                    <h2 style="text-align: center; color: var(--primary); margin-bottom: 1rem;">📋 2025 Federal Poverty Level (FPL) Income Reference Table</h2>
+                    <p style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">DeKalb Public Services Corporation | Immigration Services Sliding Scale Fee Discount Schedule</p>
+                    
+                    <div style="margin-bottom: 2rem; padding: 1rem; background: #f0f4ff; border-left: 4px solid var(--primary); border-radius: 6px;">
+                        <p style="margin: 0; color: var(--primary); font-weight: 600;">Annual Gross Income by Household Size — Contiguous 48 States (2025)</p>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Discounts based on Federal Poverty Level (FPL). Below 200% FPL: brackets every 15%. At/above 200% FPL: brackets every 50%.</p>
+                    </div>
+
+                    <div style="overflow-x: auto; margin-bottom: 2rem;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background: var(--primary); color: var(--white);">
+                                    <th style="padding: 0.75rem; text-align: left; border: 1px solid var(--border);">FPL %</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">1 Person</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">2 People</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">3 People</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">4 People</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">5 People</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">6 People</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">7 People</th>
+                                    <th style="padding: 0.75rem; text-align: center; border: 1px solid var(--border);">8 People</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="background: #f7fafc;">
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">100%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$15,060</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$20,440</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$25,820</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$31,200</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$36,580</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$41,960</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$47,340</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$52,720</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">150%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$22,590</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$30,660</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$38,730</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$46,800</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$54,870</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$62,940</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$71,010</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$79,080</td>
+                                </tr>
+                                <tr style="background: #f7fafc;">
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">200%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$30,120</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$40,880</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$51,640</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$62,400</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$73,160</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$83,920</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$94,680</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$105,440</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">250%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$37,650</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$51,100</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$64,550</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$78,000</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$91,450</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$104,900</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$118,350</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$131,800</td>
+                                </tr>
+                                <tr style="background: #f7fafc;">
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">300%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$45,180</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$61,320</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$77,460</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$93,600</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$109,740</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$125,880</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$142,020</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$158,160</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">350%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$52,710</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$71,540</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$90,370</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$109,200</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$128,030</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$146,860</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$165,690</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$184,520</td>
+                                </tr>
+                                <tr style="background: #f7fafc;">
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); font-weight: 600;">400%</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$60,240</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$81,760</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$103,280</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$124,800</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$146,320</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$167,840</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$189,360</td>
+                                    <td style="padding: 0.75rem; border: 1px solid var(--border); text-align: right;">$210,880</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 2rem; padding: 1rem; background: #fffaf0; border-left: 4px solid var(--warning); border-radius: 6px;">
+                        <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 0.75rem;">Discount Legend</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <p style="margin: 0 0 0.25rem 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #c6f6d5; border-radius: 2px; margin-right: 0.5rem;"></span><strong>75%-100%</strong></p>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">Highest need — Significant subsidy</p>
+                            </div>
+                            <div>
+                                <p style="margin: 0 0 0.25rem 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #bee3f8; border-radius: 2px; margin-right: 0.5rem;"></span><strong>40%-74%</strong></p>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">Moderate need — Partial subsidy</p>
+                            </div>
+                            <div>
+                                <p style="margin: 0 0 0.25rem 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #feebc8; border-radius: 2px; margin-right: 0.5rem;"></span><strong>5%-39%</strong></p>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">Lower need — Minimal subsidy</p>
+                            </div>
+                            <div>
+                                <p style="margin: 0 0 0.25rem 0;"><span style="display: inline-block; width: 12px; height: 12px; background: #e2e8f0; border-radius: 2px; margin-right: 0.5rem;"></span><strong>0%</strong></p>
+                                <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">At or above 400% FPL — Full fee</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN SETTINGS (MALIK ONLY) -->
+            <div id="admin" class="section">
+                <div class="form-section">
+                    <h2>⚙️ Team Management</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Manage team members, passwords, and user accounts.</p>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">👥 Current Team Members</h3>
+                        <div id="usersList" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+                    </div>
+
+                    <div style="border-top: 2px solid var(--border); padding-top: 1.5rem;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">➕ Add New Team Member</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Username *</label>
+                                <input type="text" id="newUsername" placeholder="e.g., johndps" style="padding: 0.75rem; border: 1.5px solid var(--border); border-radius: 6px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" id="newFullName" placeholder="e.g., John Smith" style="padding: 0.75rem; border: 1.5px solid var(--border); border-radius: 6px;">
+                            </div>
+                            <div class="form-group">
+                                <label>Temporary Password *</label>
+                                <input type="text" id="newUserPassword" placeholder="User will change on first login" style="padding: 0.75rem; border: 1.5px solid var(--border); border-radius: 6px;">
+                            </div>
+                        </div>
+                        <button type="button" onclick="addNewUser()" class="btn-primary" style="margin-top: 1rem;">+ Add Team Member</button>
+                    </div>
+
+                    <div style="border-top: 2px solid var(--border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                        <h3 style="color: var(--primary); margin-bottom: 1rem;">📊 Data Export</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 1rem;">Download all cases with client demographics in an Excel file.</p>
+                        <button type="button" onclick="exportCasesToExcel()" class="btn-primary" style="margin-top: 0;">📥 Download All Cases (Excel)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW CASE FORM -->
+            <div id="newCase" class="section">
+                <form id="caseForm" onsubmit="handleSaveCase(event)">
+                    <div class="form-section">
+                        <h2>📌 New Case for <span id="caseClientName"></span></h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Status *</label>
+                                <select id="caseStatus" required>
+                                    <option value="">Select...</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="On Hold">On Hold</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of First Contact</label>
+                                <input type="date" id="caseContactDate" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Case Manager *</label>
+                                <select id="caseManager" required>
+                                    <option value="">Select...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>🎯 Services & Assistance Needed</h2>
+                        <div class="form-grid full-width">
+                            <div class="form-group">
+                                <label>Type(s) of Assistance</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="SNAP">
+                                        <label>SNAP (Food Assistance)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Medicaid">
+                                        <label>Medicaid</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="TANF">
+                                        <label>TANF</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="WIC">
+                                        <label>WIC</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Translation">
+                                        <label>Translation Assistance</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Application">
+                                        <label>Application Assistance</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Immigration">
+                                        <label>Non-Legal Immigration Assistance</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Food Pantry">
+                                        <label>Food Pantry Assistance</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Donations">
+                                        <label>Clothing / Household Items / Blankets</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="General">
+                                        <label>General Assistance</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="LearnU">
+                                        <label>Youth Education (LearnU)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" name="caseAssistance" value="Outreach">
+                                        <label>Community Outreach</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>📝 Case Notes</h2>
+                        <div id="initialCaseNotesList" style="margin-bottom: 1.5rem;"></div>
+                        <div class="add-note-form">
+                            <textarea id="caseInitialNotes" placeholder="Add notes about this case..."></textarea>
+                            <button type="button" onclick="addInitialCaseNote()" class="add-note-btn">+ Add Note</button>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>🔐 Account Credentials</h2>
+                        <div id="caseAccountsList" class="form-grid full-width"></div>
+                        <button type="button" class="btn-secondary" onclick="addCaseAccountField()" style="margin-top: 1rem;">+ Add Account</button>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="button-group">
+                            <button type="submit" class="btn-primary">Create Case</button>
+                            <button type="button" class="btn-secondary" onclick="switchView('profile')">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CASE DETAIL MODAL -->
+            <div id="caseDetailModal" class="modal">
+                <div class="modal-content">
+                    <button style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.8rem; cursor: pointer; padding: 0.5rem; color: var(--text-muted); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease;" onmouseover="this.style.background='#f0f4f8'; this.style.color='var(--primary)'" onmouseout="this.style.background='none'; this.style.color='var(--text-muted)'" onclick="closeCaseDetail()">✕</button>
+                    <div id="caseDetailContent" style="padding-top: 1rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fplGuidelines = {
+            1: 15960, 2: 21640, 3: 27320, 4: 33000, 5: 38680, 6: 44360, 7: 50040, 8: 55720
+        };
+        const additionalPerPerson = 5680;
+
+        // Team members with their base credentials
+        const teamMembers = {
+            'malikdps': { fullName: 'Malik Issak', defaultPassword: 'malik123' },
+            'naheedadps': { fullName: 'Naheeda Sultani', defaultPassword: 'naheeda123' },
+            'mustaphadps': { fullName: 'Mustapha Babaaya', defaultPassword: 'mustapha123' },
+            'mohammedps': { fullName: 'Mohammed', defaultPassword: 'mohamed123' }
+        };
+
+        let clients = JSON.parse(localStorage.getItem('dpsClients')) || [];
+        let userAccounts = JSON.parse(localStorage.getItem('dpsUserAccounts')) || {};
+        let currentUser = null;
+        let currentClientId = null;
+        let caseAccountFieldCount = 1;
+        let initialCaseNotes = [];
+
+        // Initialize user accounts if first time
+        if (Object.keys(userAccounts).length === 0) {
+            Object.keys(teamMembers).forEach(username => {
+                userAccounts[username] = {
+                    fullName: teamMembers[username].fullName,
+                    password: teamMembers[username].defaultPassword,
+                    needsPasswordChange: true
+                };
+            });
+            localStorage.setItem('dpsUserAccounts', JSON.stringify(userAccounts));
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!userAccounts[username]) {
+                errorDiv.textContent = '❌ Invalid username or password';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            if (userAccounts[username].password !== password) {
+                errorDiv.textContent = '❌ Invalid username or password';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            currentUser = username;
+            localStorage.setItem('currentUser', username);
+
+            if (userAccounts[username].needsPasswordChange) {
+                document.getElementById('loginForm').reset();
+                document.getElementById('changePasswordModal').classList.add('active');
+            } else {
+                showApp();
+            }
+        }
+
+        function handleChangePassword(e) {
+            e.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            userAccounts[currentUser].password = newPassword;
+            userAccounts[currentUser].needsPasswordChange = false;
+            localStorage.setItem('dpsUserAccounts', JSON.stringify(userAccounts));
+
+            document.getElementById('changePasswordForm').reset();
+            document.getElementById('changePasswordModal').classList.remove('active');
+            showApp();
+        }
+
+        function showApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('appPage').style.display = 'block';
+            document.getElementById('currentUserDisplay').textContent = userAccounts[currentUser].fullName;
+            
+            // Show admin settings only for Malik
+            if (currentUser === 'malikdps') {
+                document.getElementById('adminBtn').style.display = 'block';
+            } else {
+                document.getElementById('adminBtn').style.display = 'none';
+            }
+            
+            updateDashboard();
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                document.getElementById('appPage').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('loginForm').reset();
+            }
+        }
+
+        function updateAge() {
+            const dob = document.getElementById('dob').value;
+            if (!dob) {
+                document.getElementById('age').value = '';
+                return;
+            }
+            const today = new Date();
+            const birthDate = new Date(dob);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            document.getElementById('age').value = age;
+        }
+
+        function calculateFPL() {
+            const householdSize = parseInt(document.getElementById('householdSize').value) || 0;
+            const householdIncome = document.getElementById('householdIncome').value.replace(/,/g, '');
+            const fplDisplay = document.getElementById('fplDisplay');
+
+            if (!householdSize || !householdIncome) {
+                fplDisplay.innerHTML = '';
+                return;
+            }
+
+            let fplThreshold = fplGuidelines[householdSize] || 
+                (fplGuidelines[8] + (householdSize - 8) * additionalPerPerson);
+
+            const income = parseFloat(householdIncome);
+            const fplPercentage = ((income / fplThreshold) * 100).toFixed(1);
+            const fplStatus = fplPercentage <= 100 ? 'At or below FPL' : 'Above FPL';
+            const fplColor = fplPercentage <= 100 ? 'var(--danger)' : 'var(--success)';
+
+            fplDisplay.innerHTML = `
+                <strong style="color: ${fplColor};">FPL: ${fplPercentage}%</strong> - ${fplStatus}
+                <br><span style="font-size: 0.85rem; color: var(--text-muted);">Household threshold: $${fplThreshold.toLocaleString()}</span>
+            `;
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(view).classList.add('active');
+            const btn = document.querySelector(`[onclick="switchView('${view}')"]`);
+            if (btn) btn.classList.add('active');
+
+            if (view === 'list') renderClientList();
+            else if (view === 'dashboard') updateDashboard();
+            else if (view === 'admin') renderAdminPanel();
+        }
+
+        // ADMIN MANAGEMENT FUNCTIONS
+        function renderAdminPanel() {
+            const usersList = document.getElementById('usersList');
+            const usersHTML = Object.keys(userAccounts).map(username => {
+                const user = userAccounts[username];
+                return `
+                    <div style="background: #f7fafc; padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <p style="margin: 0 0 0.5rem 0; font-weight: 600; font-size: 1.05rem;">${user.fullName}</p>
+                            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Username: <code style="background: #e2e8f0; padding: 0.2rem 0.5rem; border-radius: 3px; font-family: monospace;">${username}</code></p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button onclick="openChangePasswordModal('${username}')" class="btn-primary" style="padding: 0.6rem 1rem; font-size: 0.9rem;">Reset Password</button>
+                            ${username !== 'malikdps' ? `<button onclick="deleteUser('${username}')" class="btn-danger" style="padding: 0.6rem 1rem; font-size: 0.9rem;">Remove User</button>` : '<button class="btn-secondary" style="padding: 0.6rem 1rem; font-size: 0.9rem; cursor: default; opacity: 0.6;">System Admin</button>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            usersList.innerHTML = usersHTML;
+        }
+
+        function openChangePasswordModal(username) {
+            const user = userAccounts[username];
+            const newPassword = prompt(`Enter new password for ${user.fullName} (${username}):`);
+            
+            if (newPassword === null) return; // User cancelled
+            
+            if (newPassword.trim().length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+            
+            userAccounts[username].password = newPassword.trim();
+            userAccounts[username].needsPasswordChange = true;
+            localStorage.setItem('dpsUserAccounts', JSON.stringify(userAccounts));
+            
+            alert(`✅ Password updated for ${user.fullName}. They will be prompted to change it on next login.`);
+            renderAdminPanel();
+        }
+
+        function deleteUser(username) {
+            const user = userAccounts[username];
+            
+            if (confirm(`Are you sure you want to remove ${user.fullName} (${username}) from the system?\n\nThis action cannot be undone.`)) {
+                delete userAccounts[username];
+                localStorage.setItem('dpsUserAccounts', JSON.stringify(userAccounts));
+                alert(`✅ ${user.fullName} has been removed from the team.`);
+                renderAdminPanel();
+            }
+        }
+
+        function addNewUser() {
+            const username = document.getElementById('newUsername').value.trim().toLowerCase();
+            const fullName = document.getElementById('newFullName').value.trim();
+            const password = document.getElementById('newUserPassword').value.trim();
+            
+            // Validation
+            if (!username || !fullName || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters');
+                return;
+            }
+            
+            if (userAccounts[username]) {
+                alert('This username already exists');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+            
+            // Add new user
+            userAccounts[username] = {
+                fullName: fullName,
+                password: password,
+                needsPasswordChange: true
+            };
+            
+            localStorage.setItem('dpsUserAccounts', JSON.stringify(userAccounts));
+            
+            alert(`✅ New team member added!\n\nUsername: ${username}\nFull Name: ${fullName}\n\nThey will be prompted to change their password on first login.`);
+            
+            // Clear form
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newFullName').value = '';
+            document.getElementById('newUserPassword').value = '';
+            
+            renderAdminPanel();
+        }
+
+        function exportCasesToExcel() {
+            // Check if user is Malik
+            if (currentUser !== 'malikdps') {
+                alert('Only Malik can export data');
+                return;
+            }
+
+            if (clients.length === 0) {
+                alert('No clients to export');
+                return;
+            }
+
+            // Prepare data for export
+            const exportData = [];
+            
+            // Add header row
+            exportData.push([
+                'Client Name', 'Phone', 'Email', 'Address', 'DOB', 'Age', 'Gender', 'Ethnicity', 'Language',
+                'Disability Status', 'Veteran Status', 'Immigration Status', 'Household Size', 'Annual Income',
+                'Case ID', 'Case Status', 'Case Manager', 'First Contact', 'Services', 'Platform', 'Username', 'Password', 'Case Notes'
+            ]);
+
+            // Add data rows
+            clients.forEach(client => {
+                if (client.cases.length === 0) {
+                    // Add client with no cases
+                    exportData.push([
+                        client.profile.fullName,
+                        client.profile.phone,
+                        client.profile.email || '',
+                        `${client.profile.address || ''}, ${client.profile.city || ''}, ${client.profile.state || ''}`,
+                        client.profile.dob || '',
+                        client.profile.age || '',
+                        client.profile.gender || '',
+                        client.profile.ethnicity || '',
+                        client.profile.language || '',
+                        client.profile.disabilityStatus || '',
+                        client.profile.veteranStatus || '',
+                        client.profile.immigrationStatus || '',
+                        client.profile.householdSize || '',
+                        client.profile.householdIncome || '',
+                        '', '', '', '', '', '', '', '', ''
+                    ]);
+                } else {
+                    // Add client with each case
+                    client.cases.forEach((c, index) => {
+                        const credentials = c.accounts && c.accounts.length > 0 
+                            ? c.accounts.map(acc => `Platform: ${acc.accountType}, Username: ${acc.username}, Password: ${acc.password}`).join('; ')
+                            : '';
+                        
+                        const notes = c.caseNotes && c.caseNotes.length > 0
+                            ? c.caseNotes.map(note => `${new Date(note.timestamp).toLocaleString()} - ${note.author}: ${note.text}`).join(' | ')
+                            : '';
+
+                        exportData.push([
+                            index === 0 ? client.profile.fullName : '', // Only show name on first case
+                            index === 0 ? client.profile.phone : '',
+                            index === 0 ? (client.profile.email || '') : '',
+                            index === 0 ? `${client.profile.address || ''}, ${client.profile.city || ''}, ${client.profile.state || ''}` : '',
+                            index === 0 ? (client.profile.dob || '') : '',
+                            index === 0 ? (client.profile.age || '') : '',
+                            index === 0 ? (client.profile.gender || '') : '',
+                            index === 0 ? (client.profile.ethnicity || '') : '',
+                            index === 0 ? (client.profile.language || '') : '',
+                            index === 0 ? (client.profile.disabilityStatus || '') : '',
+                            index === 0 ? (client.profile.veteranStatus || '') : '',
+                            index === 0 ? (client.profile.immigrationStatus || '') : '',
+                            index === 0 ? (client.profile.householdSize || '') : '',
+                            index === 0 ? (client.profile.householdIncome || '') : '',
+                            c.id.substring(0, 8),
+                            c.status,
+                            c.caseManager,
+                            c.contactDate,
+                            c.assistance || '',
+                            credentials,
+                            '', // Platforms already in credentials
+                            '', // Usernames already in credentials
+                            '', // Passwords already in credentials
+                            notes
+                        ]);
+                    });
+                }
+            });
+
+            // Convert to CSV
+            const csv = exportData.map(row => 
+                row.map(cell => {
+                    // Escape quotes and wrap in quotes if contains comma or newline
+                    const cellStr = String(cell || '');
+                    if (cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"')) {
+                        return `"${cellStr.replace(/"/g, '""')}"`;
+                    }
+                    return cellStr;
+                }).join(',')
+            ).join('\n');
+
+            // Create blob and download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `DPS_Cases_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert('✅ Cases exported successfully!');
+        }
+
+        function handlePhoneSearch() {
+            const phone = document.getElementById('searchPhone').value.trim();
+            if (!phone) {
+                alert('Please enter a phone number');
+                return;
+            }
+
+            const foundClient = clients.find(c => c.profile.phone === phone);
+            const resultDiv = document.getElementById('searchResult');
+
+            if (foundClient) {
+                resultDiv.innerHTML = `
+                    <div style="background: #c6f6d5; border-left: 4px solid var(--success); padding: 1rem; border-radius: 6px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--success);">✓ Client Found</h3>
+                        <p style="margin: 0.5rem 0; color: var(--text);"><strong>${foundClient.profile.fullName}</strong></p>
+                        <button onclick="viewProfile('${foundClient.id}')" class="btn-primary" style="margin-top: 0.75rem;">View Profile</button>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div style="background: #feebc8; border-left: 4px solid var(--warning); padding: 1rem; border-radius: 6px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--warning);">⚠️ Client Not Found</h3>
+                        <button onclick="startNewClientWithPhone('${phone}')" class="btn-primary" style="margin-top: 0.75rem;">Create New Client</button>
+                    </div>
+                `;
+            }
+        }
+
+        function startNewClientWithPhone(phone) {
+            document.getElementById('phone').value = phone;
+            switchView('new');
+        }
+
+        function handleSaveClient(e) {
+            e.preventDefault();
+
+            const newClient = {
+                id: Date.now().toString(),
+                profile: {
+                    fullName: document.getElementById('fullName').value,
+                    dob: document.getElementById('dob').value,
+                    age: document.getElementById('age').value,
+                    gender: document.getElementById('gender').value,
+                    ethnicity: document.getElementById('ethnicity').value,
+                    language: document.getElementById('language').value,
+                    disabilityStatus: document.getElementById('disabilityStatus').value,
+                    veteranStatus: document.getElementById('veteranStatus').value,
+                    immigrationStatus: document.getElementById('immigrationStatus').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zip').value,
+                    householdSize: document.getElementById('householdSize').value,
+                    householdIncome: document.getElementById('householdIncome').value,
+                    incomeYear: document.getElementById('incomeYear').value
+                },
+                cases: [],
+                createdAt: new Date().toISOString(),
+                createdBy: userAccounts[currentUser].fullName
+            };
+
+            clients.push(newClient);
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            
+            document.getElementById('clientForm').reset();
+            alert('Client profile created! Now add a case.');
+            viewProfile(newClient.id);
+        }
+
+        function viewProfile(clientId) {
+            currentClientId = clientId;
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            // ensure cases section is visible (in case we came from edit mode)
+            const casesContainer = document.querySelector('.cases-container');
+            if (casesContainer) casesContainer.style.display = '';
+
+            const formattedIncome = client.profile.householdIncome ? 
+                '$' + parseFloat(client.profile.householdIncome.replace(/,/g, '')).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 
+                '—';
+
+            // Calculate FPL %
+            let fplPercentage = null;
+            let fplStatus = '—';
+            if (client.profile.householdSize && client.profile.householdIncome) {
+                const householdSize = parseInt(client.profile.householdSize);
+                const householdIncome = parseFloat(client.profile.householdIncome.replace(/,/g, '')) || 0;
+                
+                let fplThreshold = fplGuidelines[householdSize] || 
+                    (fplGuidelines[8] + (householdSize - 8) * additionalPerPerson);
+                
+                fplPercentage = ((householdIncome / fplThreshold) * 100).toFixed(0);
+                fplStatus = `${fplPercentage}% FPL`;
+            }
+
+            const profileHTML = `
+                <div class="profile-top">
+                    <h1>${client.profile.fullName}</h1>
+                    <div class="profile-top-actions">
+                        <button class="btn-primary" onclick="startNewCase('${clientId}')">+ Add Case</button>
+                        <button class="btn-secondary" onclick="enterEditProfileMode('${clientId}')">✏️ Edit Profile</button>
+                        <button class="btn-danger" onclick="deleteClient('${clientId}')">Delete Client</button>
+                        <button class="btn-secondary" onclick="switchView('list')">Back to List</button>
+                    </div>
+                </div>
+
+                <div class="profile-sections">
+                    <div class="profile-section">
+                        <div class="profile-section-title">👤 Personal</div>
+                        <div class="profile-row">
+                            <span class="profile-label">Name:</span>
+                            <span class="profile-value">${client.profile.fullName}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Age:</span>
+                            <span class="profile-value">${client.profile.age || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">DOB:</span>
+                            <span class="profile-value">${client.profile.dob || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Gender:</span>
+                            <span class="profile-value">${client.profile.gender || '—'}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <div class="profile-section-title">👥 Demographics & Status</div>
+                        <div class="profile-row">
+                            <span class="profile-label">Ethnicity:</span>
+                            <span class="profile-value">${client.profile.ethnicity || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Language:</span>
+                            <span class="profile-value">${client.profile.language || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Disability:</span>
+                            <span class="profile-value">${client.profile.disabilityStatus || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Veteran:</span>
+                            <span class="profile-value">${client.profile.veteranStatus || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Immigration:</span>
+                            <span class="profile-value">${client.profile.immigrationStatus || '—'}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <div class="profile-section-title">📞 Contact</div>
+                        <div class="profile-row">
+                            <span class="profile-label">Phone:</span>
+                            <span class="profile-value">${client.profile.phone}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Email:</span>
+                            <span class="profile-value">${client.profile.email || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Address:</span>
+                            <span class="profile-value">${client.profile.address ? `${client.profile.address}, ${client.profile.city}, ${client.profile.state}` : '—'}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <div class="profile-section-title">💰 Income & Household</div>
+                        <div class="profile-row">
+                            <span class="profile-label">Household Size:</span>
+                            <span class="profile-value">${client.profile.householdSize || '—'}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Annual Income:</span>
+                            <span class="profile-value">${formattedIncome}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">FPL Status:</span>
+                            <span class="profile-value" style="font-weight: 700; color: ${fplPercentage && fplPercentage <= 200 ? 'var(--danger)' : fplPercentage && fplPercentage <= 300 ? 'var(--warning)' : 'var(--success)'};">${fplStatus}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('profileHeader').innerHTML = profileHTML;
+
+            const casesHTML = client.cases.map(c => `
+                <div class="case-card" onclick="openCase('${clientId}', '${c.id}')">
+                    <div class="case-card-header">
+                        <span class="case-card-title">Case #${c.id.substring(0, 8)}</span>
+                        <span class="case-card-date">${new Date(c.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="case-card-body">
+                        <div class="case-info-item">
+                            <span class="case-info-label">Manager:</span>
+                            <span class="case-info-value">${c.caseManager}</span>
+                        </div>
+                        <div class="case-info-item">
+                            <span class="case-info-label">Contact:</span>
+                            <span class="case-info-value">${c.contactDate}</span>
+                        </div>
+                    </div>
+                    <div class="case-card-services">
+                        <span class="badge badge-${c.status === 'Active' ? 'success' : 'info'}">${c.status}</span>
+                        ${c.assistance ? c.assistance.split(',').slice(0, 2).map(a => `<span class="badge badge-warning">${a.trim().substring(0, 15)}</span>`).join('') : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            const addCaseHTML = `
+                <div class="add-case-card" onclick="startNewCase('${clientId}')">
+                    <div class="add-case-content">
+                        <div class="add-case-icon">➕</div>
+                        <div class="add-case-text">Add New Case</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('casesGrid').innerHTML = casesHTML + addCaseHTML;
+            switchView('profile');
+        }
+
+        // EDIT PROFILE MODE — renders the same profile sections as form inputs
+        function enterEditProfileMode(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const p = client.profile;
+
+            // helpers for select options that preserve current value
+            const sel = (current, options) => options.map(opt => {
+                const val = typeof opt === 'string' ? opt : opt.value;
+                const label = typeof opt === 'string' ? opt : opt.label;
+                return `<option value="${val}" ${current === val ? 'selected' : ''}>${label || val || '— Select —'}</option>`;
+            }).join('');
+
+            const genderOpts = ['', 'Male', 'Female', 'Non-binary', 'Prefer not to say'];
+            const ethnicityOpts = ['', 'Black / African American', 'African', 'Hispanic / Latino', 'White', 'Asian', 'Afghan', 'Rohingya', 'Middle Eastern / North African', 'Other', 'Prefer not to say'];
+            const languageOpts = ['English', 'Spanish', 'Arabic', 'Rohingya', 'Pashto', 'Amharic', 'Other'];
+            const disabilityOpts = ['', 'None', 'Physical', 'Developmental', 'Cognitive', 'Mental Health', 'Multiple'];
+            const veteranOpts = ['', 'None', 'Active Duty', 'Veteran', 'Reserve'];
+            const immigrationOpts = ['', 'US Citizen', 'Green Card', 'Visa', 'Refugee', 'Asylee', 'Undocumented', 'Pending', 'Other'];
+
+            const editHTML = `
+                <div class="profile-top">
+                    <h1 style="display: flex; align-items: center; gap: 0.75rem;">✏️ Editing Profile</h1>
+                    <div class="profile-top-actions">
+                        <button class="btn-primary" onclick="saveProfileEdits('${clientId}')">💾 Save Changes</button>
+                        <button class="btn-secondary" onclick="viewProfile('${clientId}')">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="profile-sections">
+                    <div class="profile-section">
+                        <div class="profile-section-title">👤 Personal</div>
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="editFullName" value="${(p.fullName || '').replace(/"/g, '&quot;')}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" id="editDob" value="${p.dob || ''}" onchange="recalcEditAge()">
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="editAge" value="${p.age || ''}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="editGender">${sel(p.gender || '', genderOpts)}</select>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <div class="profile-section-title">👥 Demographics & Status</div>
+                        <div class="form-group">
+                            <label>Ethnicity</label>
+                            <select id="editEthnicity">${sel(p.ethnicity || '', ethnicityOpts)}</select>
+                        </div>
+                        <div class="form-group">
+                            <label>Language</label>
+                            <select id="editLanguage">${sel(p.language || 'English', languageOpts)}</select>
+                        </div>
+                        <div class="form-group">
+                            <label>Disability Status</label>
+                            <select id="editDisability">${sel(p.disabilityStatus || '', disabilityOpts)}</select>
+                        </div>
+                        <div class="form-group">
+                            <label>Veteran Status</label>
+                            <select id="editVeteran">${sel(p.veteranStatus || '', veteranOpts)}</select>
+                        </div>
+                        <div class="form-group">
+                            <label>Immigration Status</label>
+                            <select id="editImmigration">${sel(p.immigrationStatus || '', immigrationOpts)}</select>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <div class="profile-section-title">📞 Contact</div>
+                        <div class="form-group">
+                            <label>Phone *</label>
+                            <input type="tel" id="editPhone" value="${(p.phone || '').replace(/"/g, '&quot;')}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="editEmail" value="${(p.email || '').replace(/"/g, '&quot;')}">
+                        </div>
+                        <div class="form-group">
+                            <label>Street Address</label>
+                            <input type="text" id="editAddress" value="${(p.address || '').replace(/"/g, '&quot;')}">
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" id="editCity" value="${(p.city || '').replace(/"/g, '&quot;')}">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <input type="text" id="editState" value="${(p.state || '').replace(/"/g, '&quot;')}" maxlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label>Zip Code</label>
+                            <input type="text" id="editZip" value="${(p.zip || '').replace(/"/g, '&quot;')}">
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <div class="profile-section-title">💰 Income & Household</div>
+                        <div class="form-group">
+                            <label>Household Size</label>
+                            <input type="number" id="editHouseholdSize" value="${p.householdSize || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>Annual Income</label>
+                            <input type="text" id="editHouseholdIncome" value="${(p.householdIncome || '').replace(/"/g, '&quot;')}" placeholder="$0,000.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Income Year</label>
+                            <input type="number" id="editIncomeYear" value="${p.incomeYear || new Date().getFullYear()}">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('profileHeader').innerHTML = editHTML;
+            // hide cases section while editing to keep focus on edit form
+            document.querySelector('.cases-container').style.display = 'none';
+        }
+
+        function recalcEditAge() {
+            const dob = document.getElementById('editDob').value;
+            if (!dob) {
+                document.getElementById('editAge').value = '';
+                return;
+            }
+            const today = new Date();
+            const birthDate = new Date(dob);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            document.getElementById('editAge').value = age;
+        }
+
+        function saveProfileEdits(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const fullName = document.getElementById('editFullName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+
+            if (!fullName) {
+                alert('Full Name is required');
+                return;
+            }
+            if (!phone) {
+                alert('Phone is required');
+                return;
+            }
+
+            client.profile.fullName = fullName;
+            client.profile.dob = document.getElementById('editDob').value;
+            client.profile.age = document.getElementById('editAge').value;
+            client.profile.gender = document.getElementById('editGender').value;
+            client.profile.ethnicity = document.getElementById('editEthnicity').value;
+            client.profile.language = document.getElementById('editLanguage').value;
+            client.profile.disabilityStatus = document.getElementById('editDisability').value;
+            client.profile.veteranStatus = document.getElementById('editVeteran').value;
+            client.profile.immigrationStatus = document.getElementById('editImmigration').value;
+            client.profile.phone = phone;
+            client.profile.email = document.getElementById('editEmail').value.trim();
+            client.profile.address = document.getElementById('editAddress').value.trim();
+            client.profile.city = document.getElementById('editCity').value.trim();
+            client.profile.state = document.getElementById('editState').value.trim();
+            client.profile.zip = document.getElementById('editZip').value.trim();
+            client.profile.householdSize = document.getElementById('editHouseholdSize').value;
+            client.profile.householdIncome = document.getElementById('editHouseholdIncome').value.trim();
+            client.profile.incomeYear = document.getElementById('editIncomeYear').value;
+
+            // log to client-level timeline
+            if (!client.timeline) client.timeline = [];
+            client.timeline.push({
+                timestamp: new Date().toISOString(),
+                action: `Profile edited by ${userAccounts[currentUser].fullName}`
+            });
+
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            // restore cases container and re-render the read-only profile
+            document.querySelector('.cases-container').style.display = '';
+            renderActiveCases();
+            viewProfile(clientId);
+        }
+
+        function startNewCase(clientId) {
+            currentClientId = clientId;
+            initialCaseNotes = [];
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Error: Client not found. Please go back to dashboard and try again.');
+                return;
+            }
+            document.getElementById('caseClientName').textContent = client.profile.fullName;
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            caseAccountFieldCount = 1;
+            document.getElementById('caseAccountsList').innerHTML = '';
+            document.getElementById('initialCaseNotesList').innerHTML = '';
+            document.getElementById('caseInitialNotes').value = '';
+            addCaseAccountField();
+            
+            document.getElementById('caseForm').reset();
+            document.getElementById('caseContactDate').value = today;
+            
+            // Dynamically populate case manager dropdown from all user accounts
+            const caseManagerSelect = document.getElementById('caseManager');
+            caseManagerSelect.innerHTML = '<option value="">Select...</option>';
+            Object.keys(userAccounts).forEach(username => {
+                const fullName = userAccounts[username].fullName;
+                const option = document.createElement('option');
+                option.value = fullName;
+                option.textContent = fullName;
+                caseManagerSelect.appendChild(option);
+            });
+            
+            // Auto-set current user as case manager
+            if (currentUser && userAccounts[currentUser]) {
+                caseManagerSelect.value = userAccounts[currentUser].fullName;
+            }
+            
+            switchView('newCase');
+        }
+
+        function addInitialCaseNote() {
+            const noteText = document.getElementById('caseInitialNotes').value.trim();
+            if (!noteText) {
+                alert('Please enter a note');
+                return;
+            }
+
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            initialCaseNotes.push({
+                timestamp: now.toISOString(),
+                text: noteText,
+                formattedDate: formattedDate,
+                formattedTime: formattedTime,
+                author: userAccounts[currentUser].fullName
+            });
+
+            renderInitialNotes();
+            document.getElementById('caseInitialNotes').value = '';
+            document.getElementById('caseInitialNotes').focus();
+        }
+
+        function renderInitialNotes() {
+            const container = document.getElementById('initialCaseNotesList');
+            if (initialCaseNotes.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const notesHTML = initialCaseNotes.map((note, index) => `
+                <div class="note-item" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <div class="note-timestamp">${note.formattedDate} at ${note.formattedTime} • <span class="note-author">${note.author}</span></div>
+                        <div class="note-text">${note.text}</div>
+                    </div>
+                    <button type="button" onclick="removeInitialNote(${index})" class="btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; margin-left: 1rem;">Remove</button>
+                </div>
+            `).join('');
+
+            container.innerHTML = notesHTML;
+        }
+
+        function removeInitialNote(index) {
+            initialCaseNotes.splice(index, 1);
+            renderInitialNotes();
+        }
+
+        function addCaseAccountField() {
+            const container = document.getElementById('caseAccountsList');
+            const accountId = `case-account-${caseAccountFieldCount++}`;
+            
+            const accountHTML = `
+                <div id="${accountId}" style="display: flex; gap: 1rem; padding: 1rem; background: #f7fafc; border-radius: 6px; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <input type="text" class="case-account-username" placeholder="Username" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem;">
+                        <input type="password" class="case-account-password" placeholder="Password" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem;">
+                        <input type="text" class="case-account-type" placeholder="Platform" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px;">
+                    </div>
+                    <button type="button" onclick="removeCaseAccountField('${accountId}')" class="btn-danger" style="padding: 0.5rem 1rem; margin-top: 0.5rem;">Remove</button>
+                </div>
+            `;
+            
+            container.innerHTML += accountHTML;
+        }
+
+        function removeCaseAccountField(accountId) {
+            document.getElementById(accountId)?.remove();
+        }
+
+        function handleSaveCase(e) {
+            e.preventDefault();
+            console.log('handleSaveCase called, currentClientId:', currentClientId);
+
+            // Validate currentClientId
+            if (!currentClientId) {
+                alert('Error: No client selected. Please go back to the client profile and try again.');
+                return false;
+            }
+
+            const client = clients.find(c => c.id === currentClientId);
+            if (!client) {
+                alert('Error: Client not found in database. Please refresh and try again.');
+                return false;
+            }
+
+            // Validate required fields
+            const status = document.getElementById('caseStatus').value;
+            const caseManager = document.getElementById('caseManager').value;
+            
+            if (!status) {
+                alert('Please select a Status for the case.');
+                document.getElementById('caseStatus').focus();
+                return false;
+            }
+            
+            if (!caseManager) {
+                alert('Please select a Case Manager.');
+                document.getElementById('caseManager').focus();
+                return false;
+            }
+
+            const assistanceBoxes = document.querySelectorAll('input[name="caseAssistance"]:checked');
+            const assistance = Array.from(assistanceBoxes).map(box => box.value).join(', ');
+
+            const accounts = [];
+            document.querySelectorAll('[id^="case-account-"]').forEach(item => {
+                const username = item.querySelector('.case-account-username')?.value || '';
+                const password = item.querySelector('.case-account-password')?.value || '';
+                const accountType = item.querySelector('.case-account-type')?.value || '';
+                if (username || password || accountType) {
+                    accounts.push({ username, password, accountType });
+                }
+            });
+
+            const newCase = {
+                id: Date.now().toString(),
+                status: status,
+                contactDate: document.getElementById('caseContactDate').value,
+                caseManager: caseManager,
+                assistance: assistance,
+                accounts: accounts,
+                caseNotes: initialCaseNotes.length > 0 ? initialCaseNotes.map(note => ({
+                    timestamp: note.timestamp,
+                    text: note.text,
+                    author: note.author
+                })) : [],
+                createdAt: new Date().toISOString(),
+                createdBy: userAccounts[currentUser].fullName,
+                timeline: [{
+                    timestamp: new Date().toISOString(),
+                    action: 'Case created'
+                }]
+            };
+
+            try {
+                client.cases.push(newCase);
+                localStorage.setItem('dpsClients', JSON.stringify(clients));
+                console.log('Case saved successfully:', newCase);
+                alert('✅ Case created successfully!');
+                initialCaseNotes = [];
+                renderActiveCases();
+                viewProfile(currentClientId);
+            } catch (err) {
+                console.error('Error saving case:', err);
+                alert('Error saving case: ' + err.message);
+            }
+            return false;
+        }
+
+        function openCase(clientId, caseId) {
+            console.log('openCase called with:', clientId, caseId);
+            try {
+                viewCaseDetail(clientId, caseId);
+            } catch (err) {
+                console.error('Error opening case:', err);
+                alert('Error opening case: ' + err.message);
+            }
+        }
+
+        // From dashboard: navigate to profile first, then open the case modal on top
+        function goToClientCase(clientId, caseId) {
+            viewProfile(clientId);
+            // small delay so the profile renders first
+            setTimeout(() => {
+                viewCaseDetail(clientId, caseId);
+            }, 50);
+        }
+
+        function viewCaseDetail(clientId, caseId) {
+            console.log('viewCaseDetail called with:', clientId, caseId);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                console.error('Client not found:', clientId);
+                alert('Error: Client not found.');
+                return;
+            }
+            const caseData = client.cases.find(c => c.id === caseId);
+            if (!caseData) {
+                console.error('Case not found:', caseId);
+                alert('Error: Case not found.');
+                return;
+            }
+
+            // Build editable account credentials section
+            const accountsHTML = (caseData.accounts && caseData.accounts.length > 0) ?
+                caseData.accounts.map((acc, idx) => {
+                    const passId = `pwd-${caseId}-${idx}`;
+                    return `
+                    <div style="background: #f7fafc; padding: 1rem; border-radius: 6px; margin-bottom: 0.75rem; border-left: 3px solid var(--primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="flex: 1;">
+                                <p style="margin: 0.25rem 0;"><strong>Platform:</strong> ${acc.accountType || '—'}</p>
+                                <p style="margin: 0.25rem 0;"><strong>Username:</strong> ${acc.username || '—'}</p>
+                                <p style="margin: 0.25rem 0; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                    <strong>Password:</strong>
+                                    <span id="${passId}" data-real="${(acc.password || '').replace(/"/g, '&quot;')}" data-shown="false">${acc.password ? '••••••••' : '—'}</span>
+                                    ${acc.password ? `<button type="button" onclick="togglePasswordVisibility('${passId}')" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: var(--neutral-light); color: var(--text); border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">👁 Show</button>
+                                    <button type="button" onclick="copyPasswordToClipboard('${passId}')" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: var(--neutral-light); color: var(--text); border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">📋 Copy</button>` : ''}
+                                </p>
+                            </div>
+                            <button type="button" onclick="removeCaseAccount('${clientId}', '${caseId}', ${idx})" class="btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">Remove</button>
+                        </div>
+                    </div>
+                `;
+                }).join('') :
+                '<p style="color: var(--text-muted); margin-bottom: 0.75rem;">No accounts saved for this case</p>';
+
+            // Build add-account form (collapsed by default)
+            const addAccountFormHTML = `
+                <div id="addAccountForm" style="display: none; background: #f0f4ff; padding: 1rem; border-radius: 6px; margin-top: 0.5rem; border: 1px dashed var(--primary);">
+                    <input type="text" id="newAccPlatform" placeholder="Platform (e.g., Gateway, Compass)" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem;">
+                    <input type="text" id="newAccUsername" placeholder="Username" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem;">
+                    <input type="text" id="newAccPassword" placeholder="Password" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" onclick="saveNewAccount('${clientId}', '${caseId}')" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Save Account</button>
+                        <button type="button" onclick="toggleAddAccountForm()" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            const notesHTML = caseData.caseNotes && caseData.caseNotes.length > 0 ?
+                caseData.caseNotes.map((note, idx) => {
+                    const noteDate = new Date(note.timestamp);
+                    const formattedDate = noteDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const formattedTime = noteDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    return `
+                    <div class="note-item" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <div class="note-timestamp">${formattedDate} at ${formattedTime} • <span class="note-author">${note.author}</span></div>
+                            <div class="note-text">${note.text}</div>
+                        </div>
+                        <button type="button" onclick="removeCaseNote('${clientId}', '${caseId}', ${idx})" class="btn-danger" style="padding: 0.3rem 0.7rem; font-size: 0.7rem; flex-shrink: 0;">Remove</button>
+                    </div>
+                `;
+                }).join('') :
+                '<p style="color: var(--text-muted);">No notes yet</p>';
+
+            // Build status options
+            const statuses = ['Active', 'Pending', 'On Hold', 'Completed', 'Closed'];
+            const statusOptionsHTML = statuses.map(s => `<option value="${s}" ${caseData.status === s ? 'selected' : ''}>${s}</option>`).join('');
+
+            // Build case manager options
+            const managerOptionsHTML = Object.keys(userAccounts).map(u => {
+                const fn = userAccounts[u].fullName;
+                return `<option value="${fn}" ${caseData.caseManager === fn ? 'selected' : ''}>${fn}</option>`;
+            }).join('');
+
+            const detailHTML = `
+                <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Case #${caseData.id.substring(0, 8)}</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Client: <strong>${client.profile.fullName}</strong></p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; padding: 1rem; background: #f7fafc; border-radius: 8px;">
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Status</h4>
+                        <select id="editCaseStatus" onchange="updateCaseStatus('${clientId}', '${caseId}', this.value)" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--border); border-radius: 6px; font-weight: 600;">
+                            ${statusOptionsHTML}
+                        </select>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Manager</h4>
+                        <p style="margin: 0; padding: 0.5rem 0;">${caseData.caseManager}</p>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">First Contact</h4>
+                        <p style="margin: 0; padding: 0.5rem 0;">${caseData.contactDate}</p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem;">Services</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${caseData.assistance ? caseData.assistance.split(',').map(s => `<span class="badge badge-warning">${s.trim()}</span>`).join('') : '<p style="color: var(--text-muted);">No services</p>'}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        🔐 Account Credentials
+                        <button onclick="toggleAddAccountForm()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--success); color: var(--white); border: none; border-radius: 4px; cursor: pointer;">+ Add Account</button>
+                    </h3>
+                    ${accountsHTML}
+                    ${addAccountFormHTML}
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        📝 Case Notes
+                        <button onclick="toggleAddNote()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--success); color: var(--white); border: none; border-radius: 4px; cursor: pointer;">+ Add Note</button>
+                    </h3>
+                    <div id="notesContainer">${notesHTML}</div>
+                    <div id="addNoteForm" class="add-note-form" style="display: none;">
+                        <textarea id="newNoteText" placeholder="Add a new note..."></textarea>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" onclick="addNoteToCase('${clientId}', '${caseId}')" class="add-note-btn">Save Note</button>
+                            <button type="button" onclick="toggleAddNote()" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button onclick="closeCaseDetail()" class="btn-secondary">Close</button>
+                    <button onclick="deleteCase('${clientId}', '${caseId}')" class="btn-danger">Delete Case</button>
+                </div>
+            `;
+
+            document.getElementById('caseDetailContent').innerHTML = detailHTML;
+            document.getElementById('caseDetailModal').classList.add('active');
+        }
+
+        // Toggle password visibility in case detail view
+        function togglePasswordVisibility(passId) {
+            const span = document.getElementById(passId);
+            if (!span) return;
+            const btn = span.parentElement.querySelector('button');
+            const isShown = span.dataset.shown === 'true';
+            if (isShown) {
+                span.textContent = '••••••••';
+                span.dataset.shown = 'false';
+                if (btn) btn.textContent = '👁 Show';
+            } else {
+                span.textContent = span.dataset.real;
+                span.dataset.shown = 'true';
+                if (btn) btn.textContent = '🙈 Hide';
+            }
+        }
+
+        function copyPasswordToClipboard(passId) {
+            const span = document.getElementById(passId);
+            if (!span) return;
+            const pwd = span.dataset.real;
+            if (!pwd) return;
+            navigator.clipboard.writeText(pwd).then(() => {
+                const btns = span.parentElement.querySelectorAll('button');
+                const copyBtn = btns[btns.length - 1];
+                if (copyBtn) {
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = '✓ Copied';
+                    setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+                }
+            }).catch(err => alert('Could not copy: ' + err));
+        }
+
+        // Update case status from detail modal
+        function updateCaseStatus(clientId, caseId, newStatus) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const caseData = client.cases.find(c => c.id === caseId);
+            if (!caseData) return;
+            caseData.status = newStatus;
+            if (!caseData.timeline) caseData.timeline = [];
+            caseData.timeline.push({
+                timestamp: new Date().toISOString(),
+                action: `Status changed to ${newStatus} by ${userAccounts[currentUser].fullName}`
+            });
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            renderActiveCases();
+        }
+
+        function updateCaseManager(clientId, caseId, newManager) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const caseData = client.cases.find(c => c.id === caseId);
+            if (!caseData) return;
+            caseData.caseManager = newManager;
+            if (!caseData.timeline) caseData.timeline = [];
+            caseData.timeline.push({
+                timestamp: new Date().toISOString(),
+                action: `Manager changed to ${newManager} by ${userAccounts[currentUser].fullName}`
+            });
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            renderActiveCases();
+        }
+
+        // Account credential management within an existing case
+        function toggleAddAccountForm() {
+            const form = document.getElementById('addAccountForm');
+            if (!form) return;
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form.style.display === 'block') {
+                document.getElementById('newAccPlatform').focus();
+            }
+        }
+
+        function saveNewAccount(clientId, caseId) {
+            const platform = document.getElementById('newAccPlatform').value.trim();
+            const username = document.getElementById('newAccUsername').value.trim();
+            const password = document.getElementById('newAccPassword').value.trim();
+
+            if (!platform && !username && !password) {
+                alert('Please fill in at least one field');
+                return;
+            }
+
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const caseData = client.cases.find(c => c.id === caseId);
+            if (!caseData) return;
+            if (!caseData.accounts) caseData.accounts = [];
+            caseData.accounts.push({ accountType: platform, username, password });
+
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            viewCaseDetail(clientId, caseId);
+        }
+
+        function removeCaseAccount(clientId, caseId, idx) {
+            if (!confirm('Remove this account?')) return;
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const caseData = client.cases.find(c => c.id === caseId);
+            if (!caseData || !caseData.accounts) return;
+            caseData.accounts.splice(idx, 1);
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            viewCaseDetail(clientId, caseId);
+        }
+
+        function removeCaseNote(clientId, caseId, idx) {
+            if (!confirm('Remove this note?')) return;
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const caseData = client.cases.find(c => c.id === caseId);
+            if (!caseData || !caseData.caseNotes) return;
+            caseData.caseNotes.splice(idx, 1);
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            viewCaseDetail(clientId, caseId);
+        }
+
+        function toggleAddNote() {
+            const form = document.getElementById('addNoteForm');
+            form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+            if (form.style.display !== 'none') {
+                document.getElementById('newNoteText').focus();
+            }
+        }
+
+        function addNoteToCase(clientId, caseId) {
+            const noteText = document.getElementById('newNoteText').value.trim();
+            if (!noteText) {
+                alert('Please enter a note');
+                return;
+            }
+
+            const client = clients.find(c => c.id === clientId);
+            const caseData = client.cases.find(c => c.id === caseId);
+            
+            caseData.caseNotes.push({
+                timestamp: new Date().toISOString(),
+                text: noteText,
+                author: userAccounts[currentUser].fullName
+            });
+
+            localStorage.setItem('dpsClients', JSON.stringify(clients));
+            renderActiveCases(); // Refresh active cases on dashboard
+            viewCaseDetail(clientId, caseId);
+        }
+
+        function closeCaseDetail() {
+            document.getElementById('caseDetailModal').classList.remove('active');
+        }
+
+        function deleteCase(clientId, caseId) {
+            if (confirm('Delete this case?')) {
+                const client = clients.find(c => c.id === clientId);
+                client.cases = client.cases.filter(c => c.id !== caseId);
+                localStorage.setItem('dpsClients', JSON.stringify(clients));
+                renderActiveCases(); // Refresh active cases on dashboard
+                closeCaseDetail();
+                viewProfile(clientId);
+            }
+        }
+
+        function deleteClient(clientId) {
+            if (confirm('Delete this client and all cases?')) {
+                clients = clients.filter(c => c.id !== clientId);
+                localStorage.setItem('dpsClients', JSON.stringify(clients));
+                renderActiveCases(); // Refresh active cases on dashboard
+                switchView('list');
+            }
+        }
+
+        function renderClientList() {
+            const listContainer = document.getElementById('clientList');
+            if (clients.length === 0) {
+                listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted);">No clients yet.</div>';
+                return;
+            }
+
+            listContainer.innerHTML = clients.map(client => `
+                <div class="client-item" onclick="viewProfile('${client.id}')">
+                    <div class="client-item-info">
+                        <h3>${client.profile.fullName}</h3>
+                        <p>📞 ${client.profile.phone} | ${client.cases.length} case${client.cases.length !== 1 ? 's' : ''}</p>
+                    </div>
+                    <div>
+                        ${client.cases.slice(0, 3).map(c => `<span class="badge badge-${c.status === 'Active' ? 'success' : 'info'}">${c.status}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateDashboard() {
+            const totalClients = clients.length;
+            const totalCases = clients.reduce((sum, c) => sum + c.cases.length, 0);
+            const activeCases = clients.reduce((sum, c) => sum + c.cases.filter(cs => cs.status === 'Active').length, 0);
+
+            document.getElementById('totalClients').textContent = totalClients;
+            document.getElementById('totalCases').textContent = totalCases;
+            document.getElementById('activeCases').textContent = activeCases;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleDateString();
+            
+            // Render active cases
+            renderActiveCases();
+        }
+
+        function renderActiveCases() {
+            const activeCasesContainer = document.getElementById('activeCasesList');
+            const allActiveCases = [];
+            
+            // Collect all active cases with client info
+            clients.forEach(client => {
+                client.cases.forEach(c => {
+                    if (c.status === 'Active') {
+                        allActiveCases.push({
+                            clientId: client.id,
+                            clientName: client.profile.fullName,
+                            clientPhone: client.profile.phone,
+                            caseId: c.id,
+                            caseManager: c.caseManager,
+                            contactDate: c.contactDate,
+                            assistance: c.assistance,
+                            createdAt: c.createdAt
+                        });
+                    }
+                });
+            });
+            
+            // Sort by newest first
+            allActiveCases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            if (allActiveCases.length === 0) {
+                activeCasesContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">No active cases yet</div>';
+                return;
+            }
+            
+            const casesHTML = allActiveCases.map(c => `
+                <div class="case-card" onclick="goToClientCase('${c.clientId}', '${c.caseId}')" style="cursor: pointer;">
+                    <div class="case-card-header">
+                        <div>
+                            <span class="case-card-title">${c.clientName}</span>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Case #${c.caseId.substring(0, 8)}</div>
+                        </div>
+                        <span class="case-card-date">${new Date(c.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="case-card-body">
+                        <div class="case-info-item">
+                            <span class="case-info-label">Manager:</span>
+                            <span class="case-info-value">${c.caseManager}</span>
+                        </div>
+                        <div class="case-info-item">
+                            <span class="case-info-label">Phone:</span>
+                            <span class="case-info-value">${c.clientPhone}</span>
+                        </div>
+                        <div class="case-info-item">
+                            <span class="case-info-label">Contact:</span>
+                            <span class="case-info-value">${c.contactDate}</span>
+                        </div>
+                    </div>
+                    <div class="case-card-services">
+                        <span class="badge badge-success">Active</span>
+                        ${c.assistance ? c.assistance.split(',').slice(0, 2).map(a => `<span class="badge badge-warning">${a.trim().substring(0, 20)}</span>`).join('') : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            activeCasesContainer.innerHTML = casesHTML;
+        }
+
+        // Check if user is already logged in
+        if (localStorage.getItem('currentUser')) {
+            currentUser = localStorage.getItem('currentUser');
+            showApp();
+        }
+    </script>
+</body>
+</html>
